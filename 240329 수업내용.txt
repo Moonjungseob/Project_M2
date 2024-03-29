@@ -1,0 +1,367 @@
+--emp 에 ename 에서 처음부터 2글자만 추출하여 소문자로 출력
+select ename from emp;
+
+select substr(ename, 1, 2) , LOWER(substr(ename, 1, 2))
+from emp;
+
+--replace 변경함수
+select '010-1234-5678' as rep_before,
+replace('010-1234-5678', '-', ' ') rep_after
+from dual;
+
+--ename에서 S를 s로 변경
+select ename, 
+replace(ename, 'S', 's')
+from emp;
+
+select 'Oracle' , LPAD('Oracle', 10, '#') as LPAD1,
+                   RPAD('Oracle', 10, '#') as RPAD1,
+                  LPAD('Oracle', 10) as LPAD1,
+                 RPAD('Oracle', 10) as RPAD1
+from dual;
+
+-- 문자열 연결 함수 : concat
+select concat (ename, job)
+from emp;
+
+select concat (ename, ':')
+from emp;
+
+--concat 사용하여 ename : job 예) SMITH:CLERK
+select concat(ename, concat(' : ', job))
+from emp;
+
+-- 문자연결
+select ename || ':' || job ename_job
+from emp;
+
+--사원번호(empno)를 앞 2자리만 표현하고 그 뒤 2자리는 *표로 출력
+select  RPAD(substr(empno, 1, 2),4, '*') 사원번호
+from emp;
+
+select  RPAD(substr(empno, 1, 2),length(empno), '*') 사원번호
+from emp;
+
+select trim('      oracle     ') as str, length(trim('      oracle     ')) 길이,
+          Ltrim('      oracle     ') as Lstr, length(Ltrim('      oracle     ')) Ltrim길이,
+          Rtrim('      oracle     ') as Rstr, length(Rtrim('      oracle     ')) Rtrim길이
+from dual;
+
+--숫자 내장함수
+--round(반올림)
+select ROUND(123.567,1), round(123.567,2),
+          ROUND(123.567,-1), round(123.567)
+from dual;
+
+--trunc 버림
+select trunc(15.79,1),  trunc(15.793,2), trunc(15.793,-1), trunc(15.793)
+from dual;
+
+
+--ceil, floor 가장 가까운 큰 수, 작은 수 정수로 반환
+select ceil(3.14), floor(3.14), ceil(-3.14), floor(-3.14)
+from dual;
+
+--나머지 MOD
+select mod(15,6)
+from dual;
+
+--날짜 
+select sysdate 오늘날짜, sysdate+1 내일, sysdate-1 어제, sysdate+3 사흘뒤
+from dual;
+
+--add_months 달 더하기
+
+select sysdate, add_months('22/05/15',3)
+from dual;
+
+--사원의 번호, 이름, 입사일, 10년 후 날짜 출력
+select empno, ename, hiredate, add_months(hiredate, 120) 
+from emp;
+
+select empno, ename, hiredate, hiredate + (interval '10' YEAR) 
+from emp;
+
+select empno, ename, hiredate, sysdate,
+ concat(trunc(months_between(sysdate , hiredate)), '개월') as 근무개월수
+ 
+from emp;
+
+select sysdate, next_day(sysdate, '월요일'), last_day(sysdate), last_day('22/05/01')
+from dual;
+
+--사원번호가 짝수인 사원의 번호, 이름, 직급 출력
+select empno, ename, job
+from emp
+where MOD(empno, 2) <1;
+
+--급여 가 1500~3000인 사람은 15%를 회비로 지불해야한다 
+--이름 급여 회비(반올림)출력
+select ename, sal, round(sal*0.15) 회비
+from emp
+where sal between 1501 and 3000;
+
+--p157형 변환함수
+-- 숫자_문자 (500=> 숫자로 인식)
+select empno, ename, empno+'500'
+from emp
+where ename= 'SMITH';
+
+select  empno+'500'
+from emp
+where ename= 'SMITH';
+
+select to_char(sysdate, 'YYYY/MM/DD HH,MI:ss') 현재날짜
+from dual;
+
+--입사일이 1,2,3월인 사원의 사번(empno), 이름, 입사일 출력
+select empno, ename, hiredate
+from emp
+where    to_char(hiredate, 'MM') = 1
+or          to_char(hiredate, 'MM') = 2
+or          to_char(hiredate, 'MM') = 3;
+
+select empno, ename, hiredate
+from emp
+where    to_char(hiredate, 'MM') in ('01', '02', '03');
+
+select empno, ename, hiredate
+from emp
+where    to_char(hiredate, 'MM') between '01' and  '03';
+
+select sal, to_char(sal, '$999,999') sal_$
+from emp;
+
+select to_char(1234567, '$99,999')
+from dual;
+
+--80/12/17 일 이후로 입사한 사람 출력
+select *
+from emp
+where hiredate > '80/12/17';
+
+select *
+from emp
+where hiredate > to_date('1980/12/17', 'YYYY/MM/DD');
+
+--사번, 이름, 급여, 커미션, 급여+커미면 출력 nvl null 값 대체
+-- nvl2 (값, null 아닐때, null일때) 
+select empno, ename, sal,nvl(comm,0), to_number (sal) + to_number(nvl(comm,0))
+from emp;
+
+select empno, ename, sal,comm, nvl2(comm,'O', 'X')
+from emp;
+
+--연봉 (1년치 급여 + 커미션)
+select ename, sal*12+nvl(comm,0) 연봉액수
+from emp;
+
+--mgr 이 null이면 ceo로 출력, empno, ename, mgr
+select empno, ename, nvl(to_char(mgr), 'CEO')
+from emp
+where mgr is null;
+
+--p170
+--job에 따라 급여 인상률을 다르게 설정
+-- manager 1.5 / salesman 1.2 / analst 1.05 / 1.04
+-- if문  decord(칼럼, 값, 값일때 행동 ,값이아닐때)
+
+select empno, ename, job, sal,
+         decode(job, 'MANAGER', sal*1.5, 
+                            'SALESMAN', sal*1.2,
+                            'ANALST', sal*1.05,
+                            sal*1.04) as upsal
+from emp;
+
+--case when
+select empno, ename, job, sal,
+        case job
+          when 'MANAGER' then sal*1.5
+          when 'SALESMAN' then sal*1.2
+          when 'ANALST' then 1.05
+          else sal*1.04
+         end as upsal
+from emp;
+
+--comm 이 null 이면 해당사항 없음, comm=0 이면 수당없음, comm이 있으면 수당 : 50 으로 출력
+select empno, ename, comm, 
+decode(comm, null, '해당사항 없음',
+                      0, '수당없음',
+                      '수당 : '|| comm) comm_text
+from emp;
+
+select empno, ename, comm,
+        case 
+         when comm is null then '해당사항 없음'
+         when comm= 0 then '수당없음'
+         when comm > 0 then '수당 : ' || comm 
+         end as comm_text
+         from emp;
+         
+-- professor 테이블 이용
+--교수명과 학과번호, 학과명을 출력
+--학과번호가 101은 컴퓨터 공학과 101이 아닌 학과는 학과명에 아무것도 출력하지 마세요
+select * from professor;
+
+select name, deptno,
+decode(deptno, 101, '컴퓨터공학과' ) as 학과명
+from professor;
+
+select name, deptno,
+decode(deptno, 101, '컴퓨터공학과', 
+                        '기타') as 학과명
+from professor;
+
+--학과 번호가 101이면 컴공 102면 멀티미디어 201은 소프트웨어 나머지 기타
+select name, deptno,
+decode(deptno, 101, '컴퓨터공학과',
+                     102, '멀티미디어공학과',
+                     201, '소프트웨어공학과',
+                     '기타') as 학과명
+from professor;
+
+select name, deptno,
+case deptno
+when 101 then '컴퓨터공학과'
+else '기타'
+end 학과명
+from professor;
+
+select name, deptno,
+case deptno
+when 101 then '컴퓨터공학과'
+when 102 then '멀티미디어공학과'
+when 201 then '소트프웨어공학과'
+else '기타'
+end 학과명
+from professor;
+
+select empno, RPAD(substr(empno, 1, 2),length(empno), '*') as MASKING_EMPNIO, 
+ename, 
+RPAD(substr(ename, 1, 1), length(ename), '*') as MASKING_NAME
+from emp
+where length(ename) =5;
+
+select empno, ename, sal, 
+trunc(sal/21.5,2) as DAY_PAY, 
+round(trunc(sal/21.5,2)/8, 1) as TIME_PAY
+from emp;
+
+select empno, ename, hiredate, 
+to_char(next_day(add_months(hiredate, 3), '월요일' ), 'YYYY-MM-DD') R_JOB,
+nvl(to_char(comm),'N/A') 
+from emp;
+
+select empno, ename, nvl(to_char(mgr), ' '), 
+case
+when mgr is null then '0000'
+when substr(mgr, 1,2)= '75' then '5555'
+when substr(mgr, 1,2)='76' then '6666'
+when substr(mgr, 1,2)='77' then '7777'
+when substr(mgr, 1,2)='78' then '8888'
+else to_char(mgr) 
+end as CHG_MGR
+from emp;
+
+select empno, ename, mgr,
+decode( substr(mgr, 1,2), null, '0000',
+             '75', '5555',
+             '76', '6666',
+             '77', '7777',
+             '78', '8888',
+             to_char(mgr))
+             as CHG_MGR
+ from emp;
+ 
+ select sal from emp;
+
+select sum(sal)
+from emp;
+ 
+ -- distinct 중복 제거
+ select distinct(sal) from emp;
+ 
+ select sum(sal) 합계,sum(Distinct(sal)) 합계2
+ from emp;
+ 
+ --급여합계와 comm 합계
+ select sum(sal), sum(comm)
+ from emp;
+ 
+ select sal
+ 
+ from emp;
+ 
+ select count(sal) from emp;
+ select count(*) from emp;
+ 
+ select count(distinct(sal)) from emp;
+ 
+ --부서 번호가 30인 사원 수
+ select count(deptno)
+ from emp
+ where deptno=30;
+ 
+ --comm이 null이 아닌 개수
+ 
+ select count(*)
+ from emp
+ where comm is not null;
+ 
+ select count (sal), count(distinct(sal))
+ from emp;
+ 
+ select Max(sal) 
+ from emp;
+ 
+ select min(sal)
+ from emp;
+ 
+ select max(sal), min(sal)
+ from emp;
+ 
+ --평균
+ 
+ select avg(sal) 
+ from emp;
+ 
+--평균 반올림해서 소수 첫번째까지 출력
+select round(avg(sal),1)
+from emp;
+
+-- 부서 번호가 20인 사원 중에서 사원의 입사일 중 가장 최근에 입사일 출력
+
+select max(hiredate)
+ 
+from emp
+where deptno=20;
+
+--professor 테이블
+--1. 총 교수수 출력
+select count (*)
+from professor;
+
+--2. 교수들의 급여 합계
+select sum(sal)
+from professor;
+
+--3 . 교수 급여의 평균
+select avg(sal)
+from professor;
+
+--4 금여 평균을 구하는 소수점 첫째자리에서 반올림
+select round(avg(sal))
+from professor;
+
+--5 교수중에서 최고 급여
+select max(sal)
+from professor;
+
+--6 교수중에서 최소 급여
+select min(sal)
+from professor;
+
+--7교수 중에서 최고 급여를 받는 사람의 이름과 급여 출력
+select name, sal 
+from professor
+where sal = (select max(sal) from professor);
